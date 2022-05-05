@@ -437,6 +437,13 @@ AppboyPlugin.prototype.getDeviceId = function (successCallback, errorCallback) {
 }
 
 /**
+ * @return Subscribes to an in app message.
+ */
+ AppboyPlugin.prototype.subscribeToInAppMessage = function (successCallback, errorCallback) {
+	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "subscribeToInAppMessage");
+}
+
+/**
  * @return Starts SDK session tracking if previously disabled. Only used for Android.
  */
 AppboyPlugin.prototype.startSessionTracking = function () {
