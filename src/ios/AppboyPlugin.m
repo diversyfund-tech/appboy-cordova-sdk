@@ -51,14 +51,16 @@
 }
 
 - (ABKInAppMessageDisplayChoice) beforeInAppMessageDisplayed:(ABKInAppMessage *)inAppMessage {
-    NSLog(@"------------- In App Message Recieved --------------");
-    NSString *formattedInAppMessageExtras = [AppboyPlugin getJsonFromExtras:inAppMessage.extras];
-    NSString *formattedInAppMessageBody = inAppMessage.message;
-    NSDictionary *inAppMessageDict = @{@"message":formattedInAppMessageBody,@"extras":formattedInAppMessageExtras};
-    NSString *inAppMessageJson = [AppboyPlugin getJsonFromInAppMessage:inAppMessageDict];
-    NSLog(inAppMessageJson);
-    [self sendCordovaSuccessPluginResultWithString:inAppMessageJson andCommand:self.inAppMessageCommand];
-    return ABKDiscardInAppMessage;
+    NSLog(@"In App Message Recieved");
+    if ([inAppMessage isKindOfClass:[ABKInAppMessageHTML class]]) {
+        NSString *formattedInAppMessageExtras = [AppboyPlugin getJsonFromExtras:inAppMessage.extras];
+        NSString *formattedInAppMessageBody = inAppMessage.message;
+        NSDictionary *inAppMessageDict = @{@"message":formattedInAppMessageBody,@"extras":formattedInAppMessageExtras};
+        NSString *inAppMessageJson = [AppboyPlugin getJsonFromInAppMessage:inAppMessageDict];
+        [self sendCordovaSuccessPluginResultWithString:inAppMessageJson andCommand:self.inAppMessageCommand];
+        return ABKDiscardInAppMessage;
+    }
+    return ABKDisplayInAppMessageNow;
 }
 
 
