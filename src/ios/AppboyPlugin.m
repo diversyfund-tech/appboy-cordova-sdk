@@ -28,6 +28,7 @@
   @property NSString *enableLocationCollection;
   @property NSString *enableGeofences;
   @property NSString *disableUNAuthorizationOptionProvisional;
+  @property CDVInvokedUrlCommand *inAppMessageCommand;
 @end
 
 @implementation AppboyPlugin
@@ -49,6 +50,20 @@
   }
 }
 
+- (ABKInAppMessageDisplayChoice) beforeInAppMessageDisplayed:(ABKInAppMessage *)inAppMessage {
+    NSLog(@"In App Message Recieved");
+    if ([inAppMessage isKindOfClass:[ABKInAppMessageHTML class]]) {
+        NSString *formattedInAppMessageExtras = [AppboyPlugin getJsonFromExtras:inAppMessage.extras];
+        NSString *formattedInAppMessageBody = inAppMessage.message;
+        NSDictionary *inAppMessageDict = @{@"message":formattedInAppMessageBody,@"extras":formattedInAppMessageExtras};
+        NSString *inAppMessageJson = [AppboyPlugin getJsonFromInAppMessage:inAppMessageDict];
+        [self sendCordovaSuccessPluginResultWithString:inAppMessageJson andCommand:self.inAppMessageCommand];
+        return ABKDiscardInAppMessage;
+    }
+    return ABKDisplayInAppMessageNow;
+}
+
+
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
   NSMutableDictionary *appboyLaunchOptions = [@{ABKSDKFlavorKey : @(CORDOVA)} mutableCopy];
 
@@ -60,6 +75,8 @@
   if (self.apiEndpoint != nil) {
     appboyLaunchOptions[ABKEndpointKey] = self.apiEndpoint;
   }
+
+  appboyLaunchOptions[ABKInAppMessageControllerDelegateKey] = self;
 
   // Set the IDFA delegate for the plugin
   if ([self.enableIDFACollection isEqualToString:@"YES"]) {
@@ -73,7 +90,7 @@
         withLaunchOptions:notification.userInfo
         withAppboyOptions:appboyLaunchOptions];
   [[Appboy sharedInstance] addSdkMetadata:@[ABKSdkMetadataCordova]];
-
+    
   if (![self.disableAutomaticPushRegistration isEqualToString:@"YES"]) {
     UIUserNotificationType notificationSettingTypes = (UIUserNotificationTypeBadge | UIUserNotificationTypeAlert | UIUserNotificationTypeSound);
     if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_9_x_Max) {
@@ -352,6 +369,10 @@
   [self sendCordovaSuccessPluginResultWithString:deviceId andCommand:command];
 }
 
+- (void) subscribeToInAppMessage:(CDVInvokedUrlCommand *)command {
+  self.inAppMessageCommand = command;
+}
+
 /*-------Appboy UI-------*/
 - (void) launchNewsFeed:(CDVInvokedUrlCommand *)command {
   ABKNewsFeedViewController *newsFeed = [[ABKNewsFeedViewController alloc] init];
@@ -558,6 +579,20 @@
 
   if (!jsonData) {
     NSLog(@"Got an error in getJsonFromExtras: %@", error);
+    return @"{}";
+  } else {
+    return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+  }
+}
+
++ (NSString *) getJsonFromInAppMessage:(NSDictionary *)inAppMessage {
+  NSError *error;
+  NSData *jsonData = [NSJSONSerialization dataWithJSONObject:inAppMessage
+                                                     options:0
+                                                       error:&error];
+
+  if (!jsonData) {
+    NSLog(@"Got an error in getJsonFromInAppMessage: %@", error);
     return @"{}";
   } else {
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
