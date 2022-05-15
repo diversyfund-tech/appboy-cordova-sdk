@@ -12,6 +12,7 @@
 - (void) requestImmediateDataFlush:(CDVInvokedUrlCommand *)command;
 - (void) getDeviceId:(CDVInvokedUrlCommand *)command;
 - (void) subscribeToInAppMessage:(CDVInvokedUrlCommand *)command;
+- (void) subscribeToContentCards:(CDVInvokedUrlCommand *)command;
 
 /*-------ABKUser.h-------*/
 - (void) setFirstName:(CDVInvokedUrlCommand *)command;
