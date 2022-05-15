@@ -444,6 +444,13 @@ AppboyPlugin.prototype.getDeviceId = function (successCallback, errorCallback) {
 }
 
 /**
+ * @return Subscribes to an content card.
+ */
+ AppboyPlugin.prototype.subscribeToContentCards = function (successCallback, errorCallback) {
+	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "subscribeToContentCards");
+}
+
+/**
  * @return Starts SDK session tracking if previously disabled. Only used for Android.
  */
 AppboyPlugin.prototype.startSessionTracking = function () {
