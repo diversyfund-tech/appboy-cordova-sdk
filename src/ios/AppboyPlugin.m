@@ -29,6 +29,7 @@
   @property NSString *enableGeofences;
   @property NSString *disableUNAuthorizationOptionProvisional;
   @property CDVInvokedUrlCommand *inAppMessageCommand;
+  @property CDVInvokedUrlCommand *contentCardsCommand;
 @end
 
 @implementation AppboyPlugin
@@ -48,6 +49,11 @@
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
     [AppDelegate swizzleHostAppDelegate];
   }
+    
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                         selector:@selector(contentCardsUpdated:)
+                                             name:ABKContentCardsProcessedNotification
+                                           object:nil];
 }
 
 - (ABKInAppMessageDisplayChoice) beforeInAppMessageDisplayed:(ABKInAppMessage *)inAppMessage {
@@ -56,13 +62,24 @@
         NSString *formattedInAppMessageExtras = [AppboyPlugin getJsonFromExtras:inAppMessage.extras];
         NSString *formattedInAppMessageBody = inAppMessage.message;
         NSDictionary *inAppMessageDict = @{@"message":formattedInAppMessageBody,@"extras":formattedInAppMessageExtras};
-        NSString *inAppMessageJson = [AppboyPlugin getJsonFromInAppMessage:inAppMessageDict];
+        NSString *inAppMessageJson = [AppboyPlugin getJsonFromDict:inAppMessageDict];
         [self sendCordovaSuccessPluginResultWithString:inAppMessageJson andCommand:self.inAppMessageCommand];
         return ABKDiscardInAppMessage;
     }
     return ABKDisplayInAppMessageNow;
 }
 
+- (void)contentCardsUpdated:(NSNotification *)notification {
+  BOOL updateIsSuccessful = [notification.userInfo[ABKContentCardsProcessedIsSuccessfulKey] boolValue];
+  if (updateIsSuccessful) {
+     NSArray *contentCards = [[Appboy sharedInstance].contentCardsController getContentCards];
+     NSString *contentCardsArrayJson = [AppboyPlugin getJsonFromContentCardsArray:contentCards];
+     NSDictionary *contentCardsDict = @{@"contentCardsList":contentCardsArrayJson};
+     NSString *contentCardsJson = [AppboyPlugin getJsonFromDict:contentCardsDict];
+     [self sendCordovaSuccessPluginResultWithString:contentCardsJson andCommand:self.contentCardsCommand];
+      
+  }
+}
 
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
   NSMutableDictionary *appboyLaunchOptions = [@{ABKSDKFlavorKey : @(CORDOVA)} mutableCopy];
@@ -373,6 +390,10 @@
   self.inAppMessageCommand = command;
 }
 
+- (void) subscribeToContentCards:(CDVInvokedUrlCommand *)command {
+  self.contentCardsCommand = command;
+}
+
 /*-------Appboy UI-------*/
 - (void) launchNewsFeed:(CDVInvokedUrlCommand *)command {
   ABKNewsFeedViewController *newsFeed = [[ABKNewsFeedViewController alloc] init];
@@ -585,14 +606,28 @@
   }
 }
 
-+ (NSString *) getJsonFromInAppMessage:(NSDictionary *)inAppMessage {
++ (NSString *) getJsonFromDict:(NSDictionary *)inAppMessage {
   NSError *error;
   NSData *jsonData = [NSJSONSerialization dataWithJSONObject:inAppMessage
                                                      options:0
                                                        error:&error];
 
   if (!jsonData) {
-    NSLog(@"Got an error in getJsonFromInAppMessage: %@", error);
+    NSLog(@"Got an error in getJsonFromDict: %@", error);
+    return @"{}";
+  } else {
+    return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+  }
+}
+
++ (NSString *) getJsonFromContentCardsArray:(NSArray *)contentCards {
+  NSError *error;
+  NSData *jsonData = [NSJSONSerialization dataWithJSONObject:contentCards
+                                                     options:0
+                                                       error:&error];
+
+  if (!jsonData) {
+    NSLog(@"Got an error in getJsonFromContentCardsArray: %@", error);
     return @"{}";
   } else {
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
