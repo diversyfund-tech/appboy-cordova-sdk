@@ -56,13 +56,12 @@
         NSString *formattedInAppMessageExtras = [AppboyPlugin getJsonFromExtras:inAppMessage.extras];
         NSString *formattedInAppMessageBody = inAppMessage.message;
         NSDictionary *inAppMessageDict = @{@"message":formattedInAppMessageBody,@"extras":formattedInAppMessageExtras};
-        NSString *inAppMessageJson = [AppboyPlugin getJsonFromInAppMessage:inAppMessageDict];
+        NSString *inAppMessageJson = [AppboyPlugin getJsonFromDict:inAppMessageDict];
         [self sendCordovaSuccessPluginResultWithString:inAppMessageJson andCommand:self.inAppMessageCommand];
         return ABKDiscardInAppMessage;
     }
     return ABKDisplayInAppMessageNow;
 }
-
 
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
   NSMutableDictionary *appboyLaunchOptions = [@{ABKSDKFlavorKey : @(CORDOVA)} mutableCopy];
@@ -573,6 +572,10 @@
 
 + (NSString *) getJsonFromExtras:(NSDictionary *)extras {
   NSError *error;
+
+  if (!extras) {
+      return @"{}";
+  }
   NSData *jsonData = [NSJSONSerialization dataWithJSONObject:extras
                                                      options:0
                                                        error:&error];
@@ -585,14 +588,28 @@
   }
 }
 
-+ (NSString *) getJsonFromInAppMessage:(NSDictionary *)inAppMessage {
++ (NSString *) getJsonFromDict:(NSDictionary *)inAppMessage {
   NSError *error;
   NSData *jsonData = [NSJSONSerialization dataWithJSONObject:inAppMessage
                                                      options:0
                                                        error:&error];
 
   if (!jsonData) {
-    NSLog(@"Got an error in getJsonFromInAppMessage: %@", error);
+    NSLog(@"Got an error in getJsonFromDict: %@", error);
+    return @"{}";
+  } else {
+    return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+  }
+}
+
++ (NSString *) getJsonFromContentCardsArray:(NSArray *)contentCards {
+  NSError *error;
+  NSData *jsonData = [NSJSONSerialization dataWithJSONObject:contentCards
+                                                     options:0
+                                                       error:&error];
+
+  if (!jsonData) {
+    NSLog(@"Got an error in getJsonFromContentCardsArray: %@", error);
     return @"{}";
   } else {
     return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
