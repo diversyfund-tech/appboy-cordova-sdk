@@ -360,13 +360,6 @@ AppboyPlugin.prototype.requestContentCardsRefresh = function () {
 }
 
 /**
-* Retrieves Content Cards from the Braze SDK. This will return the latest list of cards from the server.
-*/
-AppboyPlugin.prototype.getContentCardsFromServer = function (successCallback, errorCallback) {
-	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "getContentCardsFromServer");
-}
-
-/**
 * Retrieves Content Cards from the Braze SDK. This will return the latest list of cards from the cache.
 */
 AppboyPlugin.prototype.getContentCardsFromCache = function (successCallback, errorCallback) {
