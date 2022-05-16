@@ -72,12 +72,7 @@
 - (void)contentCardsUpdated:(NSNotification *)notification {
   BOOL updateIsSuccessful = [notification.userInfo[ABKContentCardsProcessedIsSuccessfulKey] boolValue];
   if (updateIsSuccessful) {
-     NSArray *contentCards = [[Appboy sharedInstance].contentCardsController getContentCards];
-     NSString *contentCardsArrayJson = [AppboyPlugin getJsonFromContentCardsArray:contentCards];
-     NSDictionary *contentCardsDict = @{@"contentCardsList":contentCardsArrayJson};
-     NSString *contentCardsJson = [AppboyPlugin getJsonFromDict:contentCardsDict];
-     [self sendCordovaSuccessPluginResultWithString:contentCardsJson andCommand:self.contentCardsCommand];
-      
+    [self getContentCardsFromCache:self.contentCardsCommand];
   }
 }
 
@@ -594,6 +589,10 @@
 
 + (NSString *) getJsonFromExtras:(NSDictionary *)extras {
   NSError *error;
+
+  if (!extras) {
+      return @"{}";
+  }
   NSData *jsonData = [NSJSONSerialization dataWithJSONObject:extras
                                                      options:0
                                                        error:&error];
