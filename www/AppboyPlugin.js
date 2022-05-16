@@ -360,6 +360,13 @@ AppboyPlugin.prototype.requestContentCardsRefresh = function () {
 }
 
 /**
+* Retrieves Content Cards from the Braze SDK. This will return the latest list of cards from the server.
+*/
+AppboyPlugin.prototype.getContentCardsFromServer = function (successCallback, errorCallback) {
+	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "getContentCardsFromServer");
+}
+
+/**
 * Retrieves Content Cards from the Braze SDK. This will return the latest list of cards from the cache.
 */
 AppboyPlugin.prototype.getContentCardsFromCache = function (successCallback, errorCallback) {
@@ -434,13 +441,6 @@ AppboyPlugin.prototype.getDeviceId = function (successCallback, errorCallback) {
  */
  AppboyPlugin.prototype.subscribeToInAppMessage = function (successCallback, errorCallback) {
 	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "subscribeToInAppMessage");
-}
-
-/**
- * @return Subscribes to an content card.
- */
- AppboyPlugin.prototype.subscribeToContentCards = function (successCallback, errorCallback) {
-	cordova.exec(successCallback, errorCallback, "AppboyPlugin", "subscribeToContentCards");
 }
 
 /**
