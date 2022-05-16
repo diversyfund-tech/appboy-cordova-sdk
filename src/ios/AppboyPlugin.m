@@ -29,7 +29,6 @@
   @property NSString *enableGeofences;
   @property NSString *disableUNAuthorizationOptionProvisional;
   @property CDVInvokedUrlCommand *inAppMessageCommand;
-  @property CDVInvokedUrlCommand *contentCardsCommand;
 @end
 
 @implementation AppboyPlugin
@@ -49,11 +48,6 @@
   if (![self.disableAutomaticPushHandling isEqualToString:@"YES"]) {
     [AppDelegate swizzleHostAppDelegate];
   }
-    
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                         selector:@selector(contentCardsUpdated:)
-                                             name:ABKContentCardsProcessedNotification
-                                           object:nil];
 }
 
 - (ABKInAppMessageDisplayChoice) beforeInAppMessageDisplayed:(ABKInAppMessage *)inAppMessage {
@@ -67,13 +61,6 @@
         return ABKDiscardInAppMessage;
     }
     return ABKDisplayInAppMessageNow;
-}
-
-- (void)contentCardsUpdated:(NSNotification *)notification {
-  BOOL updateIsSuccessful = [notification.userInfo[ABKContentCardsProcessedIsSuccessfulKey] boolValue];
-  if (updateIsSuccessful) {
-    [self getContentCardsFromCache:self.contentCardsCommand];
-  }
 }
 
 - (void)didFinishLaunchingListener:(NSNotification *)notification {
@@ -383,10 +370,6 @@
 
 - (void) subscribeToInAppMessage:(CDVInvokedUrlCommand *)command {
   self.inAppMessageCommand = command;
-}
-
-- (void) subscribeToContentCards:(CDVInvokedUrlCommand *)command {
-  self.contentCardsCommand = command;
 }
 
 /*-------Appboy UI-------*/
